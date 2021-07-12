@@ -956,8 +956,9 @@ static int xr_usb_serial_tty_ioctl(struct tty_struct *tty,
                         return -EFAULT;
                 if (get_user(reg, (int __user *)(arg + sizeof(int))))
                         return -EFAULT;
-                if (get_user(val, (int __user *)(arg + 2 * sizeof(int))))
+                if (get_user(val, (int __user *)(arg + 2 * sizeof(int)))){
                         return -EFAULT;
+		}
 
 			if (channel == -1)
 			{
@@ -968,8 +969,9 @@ static int xr_usb_serial_tty_ioctl(struct tty_struct *tty,
 			 	rv = xr_usb_serial_set_reg_ext(xr_usb_serial,channel,reg, val);
 				
 			}
-		    if (rv < 0)
+		    if (rv < 0){
                return -EFAULT;  
+		}
 			rv = 0;
             break;
 	case XR_USB_SERIAL_LOOPBACK:
@@ -1240,7 +1242,15 @@ static ssize_t adv_proc_write(struct file *file, const char __user *buf,
 
 	return count;
 }
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+static const struct proc_ops adv_proc_fops = {
+	.proc_open           = adv_proc_open,
+	.proc_read           = seq_read,
+	.proc_write		= adv_proc_write,
+	.proc_lseek         = seq_lseek,
+	.proc_release        = single_release,
+};
+#else
 static const struct file_operations adv_proc_fops = {
 	.owner          = THIS_MODULE,
 	.open           = adv_proc_open,
@@ -1249,6 +1259,7 @@ static const struct file_operations adv_proc_fops = {
 	.llseek         = seq_lseek,
 	.release        = single_release,
 };
+#endif
 
 static int xr_usb_serial_probe(struct usb_interface *intf,
 		     const struct usb_device_id *id)
