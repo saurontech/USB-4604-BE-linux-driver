@@ -3,10 +3,12 @@ The udev system handles the allocation of the device node, this document shows h
 
 
 1. Collecting information
-	Before writing a udev.rule file, one must collect the information spacific to your PC and your USB-4604-BE.
+	Before writing a udev.rule file, one must collect the information specific to your PC and your USB-4604-BE.
 	use the command udevadm, shown as below(in this example to collect information related to /dev/ttyADVUSB0) 
 
 		udevadm info -a -p  $(udevadm info -q path -n /dev/ttyADVUSB0)
+
+	The output should look like:
 
 		devadm info starts with the device specified by the devpath and then
 		walks up the chain of parent devices. It prints for every device
@@ -80,12 +82,12 @@ The udev system handles the allocation of the device node, this document shows h
 	3. ATTRS{bInterfaceNumber}=="00"
 
 	The KERNELS of the first parent defines the USB socket on your PC, which is currently used to connect your USB-4604-BE. 
-	We can use it to write rules that spacifically apply to devices, which is connected to this given USB socket. 
+	We can use it to write rules that specifically apply to devices, which is connected to this given USB socket. 
 	Please notice that this value will differ according to the layout of the USB system on your PC. 
 
-	The ATTRS{serial} is the serial number that represents your spacific USB-4604-BE device. 
+	The ATTRS{serial} is the serial number that represents your specific USB-4604-BE device. 
 	It will be unique on every device.
-	We can use it to write rules that spacifically apply to a given device.
+	We can use it to write rules that specifically apply to a given device.
 
 	The ATTRS{bInterfaceNumber} represents the serial port index on the USB-4604-BE device.
 
@@ -96,16 +98,16 @@ The udev system handles the allocation of the device node, this document shows h
 		Please change the value of ‘KERNELS’ according to the udev info provided by command udevadm
 
 	2. the ‘99-usb4604-fixed-serialnum.rule’
-		this example show how one can assign a fixed name to a spacific usb-4604-be device.
+		this example shows how one can assign a fixed name to a spacific usb-4604-be device.
 		this rule file defines a static name as ttyFA* for the USB-4604-BE device with the serial number: "A013452110"
 		and the name ttyFB* to the device with serial number:"N126584772"
-		Please adjust the serial numbers according to the out put of the udevadm command.
+		Please adjust the serial numbers according to the output of the udevadm command.
 
 	3. the ‘99-usb4604-fixed-serialnum-usbsocket.rule’
-		this example combinds the previous 2 examples and assign a fixed name only when a spacific device is connected to a spacific serial socket.
+		this example combinds the previous 2 examples and assign a fixed name only when a specific device is connected to a specific serial socket.
 
-	If one desires to write it’s own rule, it is very important to notice that a rule can only combind attributes of the child and one parent.
-	If the attributs are spreaded over multiple parents, one must use ENV{} to create environment variables to combind multiple rules. 
+	If one desires to write its own rule, it is very important to notice that a rule can only combind attributes of the child and one parent.
+	If the attributs are spreaded over multiple parents, one must use ENV{} to create environment variables to combine multiple rules. 
 
 3. applying the customized rule to UDEV
 
