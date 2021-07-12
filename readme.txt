@@ -21,6 +21,7 @@ This README file describes the HOW-TO of driver installation.
 
    2.1.1 Ubuntu
 	# sudo apt-get install build-essential linux-headers-generic
+	# sudo apt-get install dkms
 
    2.1.2 OpenSUSE
 	Open YaST / Software / Software Management.
@@ -31,18 +32,38 @@ This README file describes the HOW-TO of driver installation.
 	[X] Linux Kernel Development
 	[X] C/C++ Development
 
+	Utilize the Search Button to install the following packages:
+	[X] dkms
+
    2.1.3 CentOS/RHEL/Fedora
+	# dnf install kernel-devel kernel-headers gcc make
+	# dnf install dkms
+
+	* Early RedHat systems (before CentOS 7/RHEL 7/Fedora 21) might require you to use "yum" instead of "dnf".
 	# yum install kernel-devel kernel-headers gcc make
+	# yum install dkms
 	
    2.2 Compile the source code
 	This driver comes with a Makefile, therefore you can compile the driver with a single command.
 	# make
+
+   2.3 Install the driver vis DKMS
+	If one chooses not to use DKMS, simply ignore this step.
+	# make install_dkms 
 	
 	
 3. Installation
 
-   3.1 Install the common usb serial driver module
-	# insmod ./adv_usb_serial.ko
+   3.1 Insert the USB-4604-BE usb serial driver module
+	 The CDC-ACM driver seems to wrongly adopt the USB-460$-BE driver; 
+	therefore, if CDC-ACM is not needed, one can simply remove the CDC_ACM driver.
+	# rmmod cdc-acm
+
+	Install the driver by using the following command
+	# sudo modprobe adv_usb_serial
+
+   		*if one didn't install this driver via DKMS, one can insert the ko file directly. 
+		# insmod ./adv_usb_serial.ko
 
    3.2 Plug the device into the USB host.  You should see up to four devices created,
 	typically /dev/ttyADVUSB[0-3].
@@ -57,8 +78,6 @@ This README file describes the HOW-TO of driver installation.
 
 	You can also get operation mode from procfs:
 	# cat /proc/driver/adv-usb-serial[minor]
-
-   3.4 Open serial port
 
 
 4. Tips for Debugging

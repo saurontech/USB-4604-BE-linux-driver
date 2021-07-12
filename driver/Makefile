@@ -6,11 +6,16 @@ PWD       := $(shell pwd)
 
 EXTRA_CFLAGS	:= -DDEBUG=0
 
+MODNAME = advusb4604be
+VERSION = 1
+
 all:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD)
 
 modules_install:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules_install
+
+
 
 clean:
 	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions vtty *.symvers *.order *.a *.mod
