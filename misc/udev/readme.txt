@@ -80,6 +80,8 @@ The udev system handles the allocation of the device node, this document shows h
 	1. KERNELS=="2-1.1:1.0"
 	2. ATTRS{serial}=="A013452110"
 	3. ATTRS{bInterfaceNumber}=="00"
+	4. ATTRS{idVendor}=="1809"
+	5. ATTRS{idProduct}=="b704"
 
 	The KERNELS of the first parent defines the USB socket on your PC, which is currently used to connect your USB-4604-BE. 
 	We can use it to write rules that specifically apply to devices, which is connected to this given USB socket. 
@@ -90,6 +92,9 @@ The udev system handles the allocation of the device node, this document shows h
 	We can use it to write rules that specifically apply to a given device.
 
 	The ATTRS{bInterfaceNumber} represents the serial port index on the USB-4604-BE device.
+
+	The ATTRS{idVendor} represents the vender ID of the device
+	The ATTRS{idProduct} represents the product ID of the device; USB-4604-BE and USB-4604BM will have different product IDs
 
 2. Writing a udev.rule
 	we provide three examples for your reference:
@@ -104,9 +109,9 @@ The udev system handles the allocation of the device node, this document shows h
 		Please adjust the serial numbers according to the output of the udevadm command.
 
 	3. the ‘99-usb4604-fixed-serialnum-usbsocket.rule’
-		this example combinds the previous 2 examples and assign a fixed name only when a specific device is connected to a specific serial socket.
+		this example combines the previous 2 examples and assign a fixed name only when a specific device is connected to a specific serial socket.
 
-	If one desires to write its own rule, it is very important to notice that a rule can only combind attributes of the child and one parent.
+	If one desires to write its own rule, it is very important to notice that a rule can only combine attributes of the child and one parent.
 	If the attributs are spreaded over multiple parents, one must use ENV{} to create environment variables to combine multiple rules. 
 
 3. applying the customized rule to UDEV
