@@ -79,19 +79,86 @@ This README file describes the HOW-TO of driver installation.
 	You can also get operation mode from procfs:
 	# cat /proc/driver/adv-usb-serial[minor]
 
+4. Solving the conflict with the CDC-ACM driver
+	  It is possible that the USB-4604B(M) device is bound to the default CDC-ACM driver, 
+	this will previent it from being properly handled by our custom driver.
+	  To solve this issue, you can chose on of the following methods, based on your need.
 
-4. Tips for Debugging
+   4.1 Remove the CDC-ACM driver, or adjust its order in the system
+	Oftentimes, the CDC-ACM is installed before the USB4604 driver.
+	In this case, the device will be bound to the CDC-ACM instead of the USB4604B driver.
 
-   4.1 Check that the USB UART is detected by the system
+	The simplest way is to remove the CDC-ACM driver.
+	Afterwards, one can add the CDC-ACM back to the system.
+	By doing so, the order of the drivers in the system will be altered, encouraging the system to lookup the USB4604B driver first.
+
+      4.1.1 Remove the CDC-ACM driver first
+	# rmmod cdc-acm 
+
+      4.1.3 Adding the CDC-ACM driver back to the system
+	# modprobe cdc-acm
+
+
+   4.2 Manually unbinding and binding the device
+	If the CDC-ACM driver is currently in use, one can unbind the device manually, and afterwards bind it to our driver.
+
+      4.2.1 Reveal the usb node hierarchy
+	# tree /sys/bus/usb/drivers/cdc_acm/
+	/sys/bus/usb/drivers/cdc_acm/
+	├── 2-1.1:1.0 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.0
+	├── 2-1.1:1.1 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.1
+	├── 2-1.1:1.2 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.2
+	├── 2-1.1:1.3 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.3
+	├── 2-1.1:1.4 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.4
+	├── 2-1.1:1.5 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.5
+	├── 2-1.1:1.6 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.6
+	├── 2-1.1:1.7 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.7
+	├── bind
+	├── module -> ../../../../module/adv_usb_serial
+	├── new_id
+	├── remove_id
+	├── uevent
+	└── unbind
+
+      4.2.2 Unbind the usb nodes from CDC-ACM
+
+	Unbind the nodes from cdc_acm, the node number should be based on the info revealed from the "4.2.1 tree"command
+	# sudo sh -c 'echo -n "2-1.1:1.0" > /sys/bus/usb/drivers/cdc_acm/unbind'
+	# sudo sh -c 'echo -n "2-1.1:1.2" > /sys/bus/usb/drivers/cdc_acm/unbind'
+	# sudo sh -c 'echo -n "2-1.1:1.4" > /sys/bus/usb/drivers/cdc_acm/unbind'
+	# sudo sh -c 'echo -n "2-1.1:1.6" > /sys/bus/usb/drivers/cdc_acm/unbind'
+
+      4.2.3 Bind the usb nodes to USB4604
+	# sudo sh -c 'echo -n "2-1.1:1.0" > /sys/bus/usb/drivers/cdc_xr_usb_serial/bind'
+	# sudo sh -c 'echo -n "2-1.1:1.2" > /sys/bus/usb/drivers/cdc_xr_usb_serial/bind'
+	# sudo sh -c 'echo -n "2-1.1:1.4" > /sys/bus/usb/drivers/cdc_xr_usb_serial/bind'
+	# sudo sh -c 'echo -n "2-1.1:1.6" > /sys/bus/usb/drivers/cdc_xr_usb_serial/bind'
+
+      4.2.4 Check the binding of the USB4604 driver
+	# tree /sys/bus/usb/drivers/cdc_xr_usb_serial/
+	/sys/bus/usb/drivers/cdc_xr_usb_serial/
+	├── 2-1.1:1.0 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.0
+	├── 2-1.1:1.1 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.1
+	├── 2-1.1:1.2 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.2
+	├── 2-1.1:1.3 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.3
+	├── 2-1.1:1.4 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.4
+	├── 2-1.1:1.5 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.5
+	├── 2-1.1:1.6 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.6
+	├── 2-1.1:1.7 -> ../../../../devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/2-1.1:1.7
+	├── bind
+	├── module -> ../../../../module/adv_usb_serial
+	├── new_id
+	├── remove_id
+	├── uevent
+	└── unbind
+
+5. UDEV rules
+   We provide several udev.rule examples in the misc/udev directory
+   Check the misc/udev/readme.txt for more information.
+
+6. Tips for Debugging
+
+   6.1 Check that the USB UART is detected by the system
 	# lsusb
 	Bus 007 Device 002: ID 1809:b704 Advantech --> b604/b704 is the ID of USB-4604-B/USB-4604-BM
-
-   4.2 Check that the CDC-ACM driver was not installed for the USB-4604B(M)
-	# ls /dev/tty*
-
-	To remove the CDC-ACM driver and install the driver:
-	# rmmod cdc-acm
-	# modprobe -r usbserial
-	# modprobe usbserial
-	# insmod ./adv_usb_serial.ko
 
