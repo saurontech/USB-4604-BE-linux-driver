@@ -1,5 +1,5 @@
 ============================================================================
-	       	Advantech Linux USB Serial driver for USB-4604B(M)-BE
+	       	Advantech Linux USB Serial driver for USB-4604B(M)
 		         Installation Guide
 ============================================================================
 
@@ -8,8 +8,8 @@ This README file describes the HOW-TO of driver installation.
 1. Introduction
 
    This driver will work with any USB UART function in these devices:
-   USB-4604B-BE(RS-232 only)
-   USB-4604BM-BE(RS-232/RS-422/RS-485)
+   USB-4604B(RS-232 only)
+   USB-4604BM(RS-232/RS-422/RS-485)
 
    This driver support Linux Kernel 3.6.x and newer.
    
@@ -54,8 +54,8 @@ This README file describes the HOW-TO of driver installation.
 	
 3. Installation
 
-   3.1 Insert the USB-4604-BE usb serial driver module
-	 The CDC-ACM driver seems to wrongly adopt the USB-460$-BE driver; 
+   3.1 Insert the USB-4604BM usb serial driver module
+	 The CDC-ACM driver seems to wrongly adopt the USB-4604BM driver; 
 	therefore, if CDC-ACM is not needed, one can simply remove the CDC_ACM driver.
 	# rmmod cdc-acm
 
@@ -69,7 +69,7 @@ This README file describes the HOW-TO of driver installation.
 	typically /dev/ttyADVUSB[0-3].
 
    3.3 Use procfs to set operation mode
-	If you are using USB-4604BM-BE, you can set operation mode RS-232/RS-422/RS-485 to your serial port with this command
+	If you are using USB-4604BM, you can set operation mode RS-232/RS-422/RS-485 to your serial port with this command
 	# echo [232/422/485] > /proc/driver/adv-usb-serial[minor]
 	the [minor] is the minor number of serial port
 
@@ -80,24 +80,12 @@ This README file describes the HOW-TO of driver installation.
 	# cat /proc/driver/adv-usb-serial[minor]
 
 4. Solving the conflict with the CDC-ACM driver
-	  It is possible that the USB-4604B(M) device is bound to the default CDC-ACM driver, 
+	  On some systems the USB-4604B(M) device might be bound to the default CDC-ACM driver, 
 	this will previent it from being properly handled by our custom driver.
 	  To solve this issue, you can chose on of the following methods, based on your need.
 
-   4.1 Remove the CDC-ACM driver, or adjust its order in the system
-	Oftentimes, the CDC-ACM is installed before the USB4604 driver.
-	In this case, the device will be bound to the CDC-ACM instead of the USB4604B driver.
-
-	The simplest way is to remove the CDC-ACM driver.
-	Afterwards, one can add the CDC-ACM back to the system.
-	By doing so, the order of the drivers in the system will be altered, encouraging the system to lookup the USB4604B driver first.
-
-      4.1.1 Remove the CDC-ACM driver first
+   4.1 Remove the CDC-ACM driver, if it isn't needed.
 	# rmmod cdc-acm 
-
-      4.1.3 Adding the CDC-ACM driver back to the system
-	# modprobe cdc-acm
-
 
    4.2 Manually unbinding and binding the device
 	If the CDC-ACM driver is currently in use, one can unbind the device manually, and afterwards bind it to our driver.
@@ -128,7 +116,7 @@ This README file describes the HOW-TO of driver installation.
 	# sudo sh -c 'echo -n "2-1.1:1.4" > /sys/bus/usb/drivers/cdc_acm/unbind'
 	# sudo sh -c 'echo -n "2-1.1:1.6" > /sys/bus/usb/drivers/cdc_acm/unbind'
 
-      4.2.3 Bind the usb nodes to USB4604
+      4.2.3 Bind the usb nodes to the USB4604 driver
 	# sudo sh -c 'echo -n "2-1.1:1.0" > /sys/bus/usb/drivers/cdc_xr_usb_serial/bind'
 	# sudo sh -c 'echo -n "2-1.1:1.2" > /sys/bus/usb/drivers/cdc_xr_usb_serial/bind'
 	# sudo sh -c 'echo -n "2-1.1:1.4" > /sys/bus/usb/drivers/cdc_xr_usb_serial/bind'
@@ -152,7 +140,12 @@ This README file describes the HOW-TO of driver installation.
 	├── uevent
 	└── unbind
 
-5. UDEV rules
+5. Integration with UDEV system
+   The udev service can be used to do many thinks, for example: 
+	* Giving the device node a fixed name in /dev/ 
+	* Setting up the serial mode(RS-232/422/485) when the device is plugged in.
+	* ...etc
+
    We provide several udev.rule examples in the misc/udev directory
    Check the misc/udev/readme.txt for more information.
 
@@ -162,3 +155,6 @@ This README file describes the HOW-TO of driver installation.
 	# lsusb
 	Bus 007 Device 002: ID 1809:b704 Advantech --> b604/b704 is the ID of USB-4604-B/USB-4604-BM
 
+7. Loading the driver at boottime
+	On systems that are based on systemd, one can add "adv_usb_serial"(without the double commas) to the /etc/modules, /etc/modules.conf or create a new .conf file in /etc/modules-load.d/
+	On other systems that don't have systemd, adding the "modprobe" or "insmod" command to the /etc/rc files might also work.
