@@ -98,18 +98,21 @@ The udev system handles the allocation of the device node, this document shows h
 
 2. Writing a udev.rule
 	we provide three examples for your reference:
-	1. the ‘99-usb4604be-fixed-usbsocket.rule’
-		this example shows how one can assign a fixed name ‘ttyFixed*’ to the devices, which are connected to a given USB socket on you PC.
+	1. the '99-usb4604be-fixed-usbsocket.rule'
+		This example shows how one can assign a fixed name ‘ttyFixed*’ to the devices, which are connected to a given USB socket on you PC.
 		Please change the value of ‘KERNELS’ according to the udev info provided by command udevadm
 
-	2. the ‘99-usb4604-fixed-serialnum.rule’
-		this example shows how one can assign a fixed name to a spacific usb-4604-be device.
-		this rule file defines a static name as ttyFA* for the USB-4604-BE device with the serial number: "A013452110"
+	2. the '99-usb4604-fixed-serialnum.rule'
+		This example shows how one can assign a fixed name to a spacific usb-4604-be device.
+		This rule file defines a static name as ttyFA* for the USB-4604-BE device with the serial number: "A013452110"
 		and the name ttyFB* to the device with serial number:"N126584772"
 		Please adjust the serial numbers according to the output of the udevadm command.
 
-	3. the ‘99-usb4604-fixed-serialnum-usbsocket.rule’
-		this example combines the previous 2 examples and assign a fixed name only when a specific device is connected to a specific serial socket.
+	3. the '99-usb4604-fixed-serialnum-usbsocket.rule'
+		This example combines the previous 2 examples and assign a fixed name only when a specific device is connected to a specific serial socket.
+	
+	4. the '99-usb4604be-fixed-serialnum-init-mode.rule'
+		This example is an addition to '99-usb4604-fixed-serialnum.rule', initiating the serial mode(RS-232/422/485) accoding to ones desire.
 
 	If one desires to write its own rule, it is very important to notice that a rule can only combine attributes of the child and one parent.
 	If the attributs are spreaded over multiple parents, one must use ENV{} to create environment variables to combine multiple rules. 
