@@ -84,8 +84,10 @@ This README file describes the HOW-TO of driver installation.
 	this will previent it from being properly handled by our custom driver.
 	  To solve this issue, you can chose on of the following methods, based on your need.
 
-   4.1 Remove the CDC-ACM driver, if it isn't needed.
-	# rmmod cdc-acm 
+   4.1 Remove or reorder the CDC-ACM driver.
+	# sudo rmmod cdc-acm 
+	# sudo modprobe adv_usb_serial
+	# sudo modprobe cdc-acm
 
    4.2 Manually unbinding and binding the device
 	If the CDC-ACM driver is currently in use, one can unbind the device manually, and afterwards bind it to our driver.
