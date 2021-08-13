@@ -1,5 +1,5 @@
 ============================================================================
-	       	Advantech Linux USB Serial driver for USB-4604B(M)
+	       	Advantech Linux USB Serial driver for USB-4604B(M)-BE
 		         Installation Guide
 ============================================================================
 
