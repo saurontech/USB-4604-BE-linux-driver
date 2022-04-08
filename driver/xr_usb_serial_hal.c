@@ -463,11 +463,11 @@ int adv_usb_serial_set_soft_flow_mode(struct xr_usb_serial *xr_usb_serial,
 		struct tty_struct *tty)
 {
 	unsigned int flow;
-	unsigned int gpio_mode;
+	unsigned short gpio_mode;
 	//short *temp;
 	//temp = kmalloc(sizeof(short), GFP_KERNEL);
 	//*temp = 
-	gpio_mode = UART_GPIO_MODE_SEL_GPIO;
+	//gpio_mode = UART_GPIO_MODE_SEL_GPIO;
 	if (I_IXOFF(tty) || I_IXON(tty))
 	{
 		unsigned char   start_char = START_CHAR(tty);
@@ -482,7 +482,7 @@ int adv_usb_serial_set_soft_flow_mode(struct xr_usb_serial *xr_usb_serial,
 	}
 
 	xr_usb_serial_set_reg(xr_usb_serial, xr_usb_serial->reg_map.uart_flow_addr, flow);
-	xr_usb_serial_get_reg(xr_usb_serial, xr_usb_serial->reg_map.uart_gpio_mode_addr, gpio_mode);
+	xr_usb_serial_get_reg(xr_usb_serial, xr_usb_serial->reg_map.uart_gpio_mode_addr, &gpio_mode);
 	xr_usb_serial_set_reg(xr_usb_serial, xr_usb_serial->reg_map.uart_gpio_mode_addr, gpio_mode & ~0x07);
 //	kfree(temp);
 	return 0;
