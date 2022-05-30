@@ -47,9 +47,8 @@ This README file describes the HOW-TO of driver installation.
 	This driver comes with a Makefile, therefore you can compile the driver with a single command.
 	# make
 
-   2.3 Install the driver vis DKMS
-	If one chooses not to use DKMS, simply ignore this step.
-	# make install_dkms 
+   2.3 Installing the driver with or without DKMS
+	By editing the "DKMS" option in the "Config.mk" file to "y" or "n", the drive will be installed("make install") with or without DKMS.
 	
 	
 3. Installation
@@ -158,5 +157,21 @@ This README file describes the HOW-TO of driver installation.
 	Bus 007 Device 002: ID 1809:b704 Advantech --> b604/b704 is the ID of USB-4604-B/USB-4604-BM
 
 7. Loading the driver at boottime
-	On systems that are based on systemd, one can add "adv_usb_serial"(without the double commas) to the /etc/modules, /etc/modules.conf or create a new .conf file in /etc/modules-load.d/
-	On other systems that don't have systemd, adding the "modprobe" or "insmod" command to the /etc/rc files might also work.
+   On systems that are based on systemd, one can add "adv_usb_serial"(without the double commas) to the /etc/modules, /etc/modules.conf or create a new .conf file in /etc/modules-load.d/
+   On other systems that don't have systemd, adding the "modprobe" or "insmod" command to the /etc/rc files might also work.
+
+   7.1 Systemd
+	We also provide a systemd service file, It can remove CDC-ACM, insert USB4604 driver, and reinsert CDC-ACM automatically.
+	It is located at "misc/systemd/usb4604b.service"
+
+      7.1.1 Install usb4604b.service
+	# make install -C ./misc/systemd/
+
+      7.1.2 Enabling usb4604b.service
+	Enabling the service on systemd during bootup.
+	# systemctl enable usb4604b.service
+
+      7.1.3 Starting usb4604b.service
+	This will start the service via systemd right away.
+	# systemctl start usb4604b.service
+

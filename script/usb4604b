@@ -1,0 +1,113 @@
+#!/bin/bash
+COMMAND=0
+SCRIPT=$0
+INSTALLPATH=/usr/local/usb4604b
+DRIVER=adv_usb_serial
+DKMSFILE=/lib/modules/`uname -r`/updates/dkms/$DRIVER.ko
+DRIVERFILE=$INSTALLPATH/$DRIVER.ko
+
+RETURN=
+OBJECTIVE=
+
+hasacmdriver()
+{
+	COUNT=`lsmod | grep cdc_acm -c`
+	if [ $COUNT -gt 0 ]
+	then
+		echo "kernel moduel CDC-ACM detected..."
+		RETURN=1
+	else
+		echo "kernel moduel CDC-ACM not installed..."
+		RETURN=0
+	fi
+}
+
+insacmdriver()
+{
+	echo "inserting kernel module CDC-ACM..."
+	modprobe cdc-acm
+}
+
+rmacmdriver()
+{
+	echo "removing kernel moduel CDC-ACM..."
+	rmmod cdc-acm
+}
+
+insdriver()
+{
+	if [ -e $DRIVERFILE ]
+	then
+	echo "inserting kernel module $DRIVER.ko ..."
+	insmod $DRIVERFILE
+	else
+	echo "inserting DKMS moduel $DRIVER ..."
+	modprobe $DRIVER
+	fi
+}
+
+rmdriver()
+{
+	echo "removing kernel moduel $DRIVER.ko..."
+	rmmod $DRIVER.ko
+}
+
+usage()
+{
+cat << EOF
+usage: $0 options
+
+This script lists helps you insert/remove usb4604b driver.
+
+OPTIONS:
+   -h      Show this message
+   -o	   Execute objective:
+		insert	- insert $DRIVER.ko module
+		remove	- remove $DRIVER.ko module
+
+Example:
+	$0 -o insert
+	$0 -o remove
+
+EOF
+}
+
+while getopts “ho:” OPTION
+do
+     case $OPTION in
+         h)
+             usage
+             exit 1
+             ;;
+         o)
+             OBJECTIVE=$OPTARG
+             ;;
+         ?)
+	     usage
+             exit
+             ;;
+     esac
+done
+
+case $OBJECTIVE in
+	insert)
+		hasacmdriver
+		if [ $RETURN -eq 1 ]
+		then
+			rmacmdriver
+		fi
+		insdriver
+		if [ $RETURN -eq 1 ]
+		then
+			insacmdriver
+		fi
+		exit 0
+	;;
+	remove)
+		rmdriver
+		exit 0
+	;;
+esac
+usage
+
+

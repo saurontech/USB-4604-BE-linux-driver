@@ -6,9 +6,6 @@ PWD       := $(shell pwd)
 
 EXTRA_CFLAGS	:= -DDEBUG=0
 
-MODNAME = advusb4604be
-VERSION = 1
-
 all:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD)
 
