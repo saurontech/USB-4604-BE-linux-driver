@@ -767,8 +767,15 @@ static int xr_usb_serial_tty_write(struct tty_struct *tty,
 		return stat;
 	return count;
 }
+
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
 static unsigned int xr_usb_serial_tty_write_room(struct tty_struct *tty)
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,0)
+static unsigned int xr_usb_serial_tty_write_room(struct tty_struct *tty)
+#	else
+static int xr_usb_serial_tty_write_room(struct tty_struct *tty)
+#	endif
 #else
 static int xr_usb_serial_tty_write_room(struct tty_struct *tty)
 #endif
@@ -782,6 +789,13 @@ static int xr_usb_serial_tty_write_room(struct tty_struct *tty)
 }
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
 static unsigned int xr_usb_serial_tty_chars_in_buffer(struct tty_struct *tty)
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,0)
+static unsigned int xr_usb_serial_tty_chars_in_buffer(struct tty_struct *tty)
+#	else
+static int xr_usb_serial_tty_chars_in_buffer(struct tty_struct *tty)
+
+#	endif
 #else
 static int xr_usb_serial_tty_chars_in_buffer(struct tty_struct *tty)
 #endif
