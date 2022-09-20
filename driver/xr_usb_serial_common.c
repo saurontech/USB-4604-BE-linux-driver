@@ -767,8 +767,11 @@ static int xr_usb_serial_tty_write(struct tty_struct *tty,
 		return stat;
 	return count;
 }
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+static unsigned int xr_usb_serial_tty_write_room(struct tty_struct *tty)
+#else
 static int xr_usb_serial_tty_write_room(struct tty_struct *tty)
+#endif
 {
 	struct xr_usb_serial *xr_usb_serial = tty->driver_data;
 	/*
@@ -777,8 +780,11 @@ static int xr_usb_serial_tty_write_room(struct tty_struct *tty)
 	 */
 	return xr_usb_serial_wb_is_avail(xr_usb_serial) ? xr_usb_serial->writesize : 0;
 }
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+static unsigned int xr_usb_serial_tty_chars_in_buffer(struct tty_struct *tty)
+#else
 static int xr_usb_serial_tty_chars_in_buffer(struct tty_struct *tty)
+#endif
 {
 	struct xr_usb_serial *xr_usb_serial = tty->driver_data;
 	/*
@@ -1972,9 +1978,15 @@ static const struct tty_operations xr_usb_serial_ops = {
 static int __init xr_usb_serial_init(void)
 {
 	int retval;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+	xr_usb_serial_tty_driver = tty_alloc_driver(XR_USB_SERIAL_TTY_MINORS, 0);
+	if (IS_ERR(xr_usb_serial_tty_driver))
+		return PTR_ERR(xr_usb_serial_tty_driver);
+#else
 	xr_usb_serial_tty_driver = alloc_tty_driver(XR_USB_SERIAL_TTY_MINORS);
 	if (!xr_usb_serial_tty_driver)
 		return -ENOMEM;
+#endif
 	xr_usb_serial_tty_driver->driver_name = "xr_usb_serial",
 	xr_usb_serial_tty_driver->name = "ttyADVUSB",
 	xr_usb_serial_tty_driver->major = XR_USB_SERIAL_TTY_MAJOR,
@@ -1989,14 +2001,22 @@ static int __init xr_usb_serial_init(void)
 
 	retval = tty_register_driver(xr_usb_serial_tty_driver);
 	if (retval) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+		tty_driver_kref_put(xr_usb_serial_tty_driver);
+#else
 		put_tty_driver(xr_usb_serial_tty_driver);
+#endif
 		return retval;
 	}
 
 	retval = usb_register(&xr_usb_serial_driver);
 	if (retval) {
 		tty_unregister_driver(xr_usb_serial_tty_driver);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+		tty_driver_kref_put(xr_usb_serial_tty_driver);
+#else
 		put_tty_driver(xr_usb_serial_tty_driver);
+#endif
 		return retval;
 	}
 
@@ -2009,7 +2029,11 @@ static void __exit xr_usb_serial_exit(void)
 {
 	usb_deregister(&xr_usb_serial_driver);
 	tty_unregister_driver(xr_usb_serial_tty_driver);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+	tty_driver_kref_put(xr_usb_serial_tty_driver);
+#else
 	put_tty_driver(xr_usb_serial_tty_driver);
+#endif
 }
 
 module_init(xr_usb_serial_init);
