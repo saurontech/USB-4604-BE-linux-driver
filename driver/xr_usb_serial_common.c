@@ -1083,8 +1083,11 @@ static int xr_usb_serial_tty_ioctl(struct tty_struct *tty,
 	return rv;
 }
 
-static void xr_usb_serial_tty_set_termios(struct tty_struct *tty,
-						struct ktermios *termios_old)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)	
+static void xr_usb_serial_tty_set_termios(struct tty_struct *tty, struct ktermios *termios_old)
+#else
+static void xr_usb_serial_tty_set_termios(struct tty_struct *tty, const struct ktermios *termios_old)
+#endif
 {
 	struct xr_usb_serial *xr_usb_serial = tty->driver_data;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 7, 0)	
@@ -1223,13 +1226,21 @@ static int adv_proc_show(struct seq_file *m, void *v)
 static int adv_proc_open(struct inode *inode, struct file *file)
 {
 	/* link to uart_driver */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0)
 	return single_open(file, adv_proc_show, PDE_DATA(inode));
+#else
+	return single_open(file, adv_proc_show, pde_data(inode));
+#endif
 }
 
 static ssize_t adv_proc_write(struct file *file, const char __user *buf,
 		size_t count, loff_t *pos)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0)
 	struct xr_usb_serial *xr_usb_serial = PDE_DATA(file_inode(file));
+#else 
+	struct xr_usb_serial *xr_usb_serial = pde_data(file_inode(file));
+#endif
 	char cmd[8];
 	size_t len;
 
