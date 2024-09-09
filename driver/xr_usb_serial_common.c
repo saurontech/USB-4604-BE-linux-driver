@@ -1244,20 +1244,32 @@ static int adv_proc_show(struct seq_file *m, void *v)
 static int adv_proc_open(struct inode *inode, struct file *file)
 {
 	/* link to uart_driver */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0)
-	return single_open(file, adv_proc_show, PDE_DATA(inode));
-#else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,17,0)
 	return single_open(file, adv_proc_show, pde_data(inode));
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,4)
+	return single_open(file, adv_proc_show, pde_data(inode));
+#	else
+	single_open(file, adv_proc_show, PDE_DATA(inode));
+#	endif
+#else
+	return single_open(file, adv_proc_show, PDE_DATA(inode));
 #endif
 }
 
 static ssize_t adv_proc_write(struct file *file, const char __user *buf,
 		size_t count, loff_t *pos)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0)
-	struct xr_usb_serial *xr_usb_serial = PDE_DATA(file_inode(file));
-#else 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,17,0)
 	struct xr_usb_serial *xr_usb_serial = pde_data(file_inode(file));
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,4)
+	struct xr_usb_serial *xr_usb_serial = pde_data(file_inode(file));
+#	else
+	struct xr_usb_serial *xr_usb_serial = PDE_DATA(file_inode(file));
+#	endif
+#else 
+	struct xr_usb_serial *xr_usb_serial = PDE_DATA(file_inode(file));
 #endif
 	char cmd[8];
 	size_t len;
