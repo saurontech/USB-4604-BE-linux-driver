@@ -1250,7 +1250,7 @@ static int adv_proc_open(struct inode *inode, struct file *file)
 #	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,4)
 	return single_open(file, adv_proc_show, pde_data(inode));
 #	else
-	single_open(file, adv_proc_show, PDE_DATA(inode));
+	return single_open(file, adv_proc_show, PDE_DATA(inode));
 #	endif
 #else
 	return single_open(file, adv_proc_show, PDE_DATA(inode));
