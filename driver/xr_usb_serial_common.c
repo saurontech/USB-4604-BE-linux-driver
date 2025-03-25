@@ -718,6 +718,14 @@ static void xr_usb_serial_tty_close(struct tty_struct *tty, struct file *filp)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6,6,0)
 static ssize_t xr_usb_serial_tty_write(struct tty_struct *tty,
 					const unsigned char *buf, size_t count)
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,5)
+static ssize_t xr_usb_serial_tty_write(struct tty_struct *tty,
+					const unsigned char *buf, size_t count)
+#	else
+static int xr_usb_serial_tty_write(struct tty_struct *tty,
+					const unsigned char *buf, int count)
+#	endif
 #else
 static int xr_usb_serial_tty_write(struct tty_struct *tty,
 					const unsigned char *buf, int count)
@@ -1101,17 +1109,23 @@ static int xr_usb_serial_tty_ioctl(struct tty_struct *tty,
 	return rv;
 }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)	
-static void xr_usb_serial_tty_set_termios(struct tty_struct *tty, struct ktermios *termios_old)
-#else
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)	
 static void xr_usb_serial_tty_set_termios(struct tty_struct *tty, const struct ktermios *termios_old)
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,5)
+static void xr_usb_serial_tty_set_termios(struct tty_struct *tty, const struct ktermios *termios_old)
+#	else
+static void xr_usb_serial_tty_set_termios(struct tty_struct *tty, struct ktermios *termios_old)
+#	endif
+#else
+static void xr_usb_serial_tty_set_termios(struct tty_struct *tty, struct ktermios *termios_old)
 #endif
 {
 	struct xr_usb_serial *xr_usb_serial = tty->driver_data;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 7, 0)	
-	struct ktermios *termios = tty->termios;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0)	
+	struct ktermios *termios = &tty->termios;
 #else
-    struct ktermios *termios = &tty->termios;
+    struct ktermios *termios = tty->termios;
 #endif
 	unsigned int   cflag = termios->c_cflag;
 	struct usb_cdc_line_coding newline;
@@ -2036,6 +2050,16 @@ static int __init xr_usb_serial_init(void)
 	xr_usb_serial_tty_driver = tty_alloc_driver(XR_USB_SERIAL_TTY_MINORS, 0);
 	if (IS_ERR(xr_usb_serial_tty_driver))
 		return PTR_ERR(xr_usb_serial_tty_driver);
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,5)
+	xr_usb_serial_tty_driver = tty_alloc_driver(XR_USB_SERIAL_TTY_MINORS, 0);
+	if (IS_ERR(xr_usb_serial_tty_driver))
+		return PTR_ERR(xr_usb_serial_tty_driver);
+#	else
+	xr_usb_serial_tty_driver = alloc_tty_driver(XR_USB_SERIAL_TTY_MINORS);
+	if (!xr_usb_serial_tty_driver)
+		return -ENOMEM;
+#	endif
 #else
 	xr_usb_serial_tty_driver = alloc_tty_driver(XR_USB_SERIAL_TTY_MINORS);
 	if (!xr_usb_serial_tty_driver)
@@ -2057,6 +2081,12 @@ static int __init xr_usb_serial_init(void)
 	if (retval) {
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
 		tty_driver_kref_put(xr_usb_serial_tty_driver);
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,5)
+		tty_driver_kref_put(xr_usb_serial_tty_driver);
+#	else
+		put_tty_driver(xr_usb_serial_tty_driver);
+#	endif
 #else
 		put_tty_driver(xr_usb_serial_tty_driver);
 #endif
@@ -2068,6 +2098,12 @@ static int __init xr_usb_serial_init(void)
 		tty_unregister_driver(xr_usb_serial_tty_driver);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
 		tty_driver_kref_put(xr_usb_serial_tty_driver);
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,5)
+		tty_driver_kref_put(xr_usb_serial_tty_driver);
+#	else
+		put_tty_driver(xr_usb_serial_tty_driver);
+#	endif
 #else
 		put_tty_driver(xr_usb_serial_tty_driver);
 #endif
@@ -2085,6 +2121,12 @@ static void __exit xr_usb_serial_exit(void)
 	tty_unregister_driver(xr_usb_serial_tty_driver);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
 	tty_driver_kref_put(xr_usb_serial_tty_driver);
+#elif defined(RHEL_RELEASE_CODE)
+#	if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(9,5)
+		tty_driver_kref_put(xr_usb_serial_tty_driver);
+#	else
+		put_tty_driver(xr_usb_serial_tty_driver);
+#	endif
 #else
 	put_tty_driver(xr_usb_serial_tty_driver);
 #endif
