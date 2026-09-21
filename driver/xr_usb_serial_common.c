@@ -1702,8 +1702,13 @@ made_compressed_probe:
 		if (!xr_usb_serial->country_codes)
 			goto skip_countries;
 		xr_usb_serial->country_code_size = cfd->bLength - 4;
-		memcpy(xr_usb_serial->country_codes, (u8 *)&cfd->wCountyCode0,
-							cfd->bLength - 4);
+		memcpy(xr_usb_serial->country_codes,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 19, 0)
+				(u8 *)&cfd->wCountryCode0,
+#else
+				(u8 *)&cfd->wCountyCode0,
+#endif
+				cfd->bLength - 4);
 		xr_usb_serial->country_rel_date = cfd->iCountryCodeRelDate;
 
 		i = device_create_file(&intf->dev, &dev_attr_wCountryCodes);
